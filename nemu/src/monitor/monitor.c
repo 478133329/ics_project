@@ -120,6 +120,7 @@ void init_monitor(int argc, char *argv[]) {
   init_isa();
 
   /* Load the image to memory. This will overwrite the built-in image. */
+  /* 这个函数会将一个有意义的客户程序从镜像文件读入到内存, 覆盖刚才的内置客户程序. */
   long img_size = load_img();
 
   /* Initialize differential testing. */

@@ -20,6 +20,10 @@ void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
 
+/*
+	nemu's main function simulates the hardware power-on initialization process.
+*/
+
 int main(int argc, char *argv[]) {
   /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM

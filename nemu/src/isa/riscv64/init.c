@@ -28,6 +28,9 @@ static const uint32_t img [] = {
 
 static void restart() {
   /* Set the initial program counter. */
+  /*
+  * RESET_VECTOR为pc初始化值, 它等于CONFIG_MBASE和CONFIG_PC_RESET_OFFSET相加
+  */
   cpu.pc = RESET_VECTOR;
 
   /* The zero register is always 0. */
@@ -36,6 +39,10 @@ static void restart() {
 
 void init_isa() {
   /* Load built-in image. */
+  /*
+  * 我们知道, 程序是由指令构成的, 而不同ISA的指令也各不相同(想象一下用不同的语言来表达"你好"的意思), 因而程序本身肯定是ISA相关的. 因此, 我们把内置客户程序放在
+  * init_isa()中, 而不是init_mem()中.
+  */
   memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 
   /* Initialize this virtual computer system. */
