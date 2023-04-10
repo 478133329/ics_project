@@ -33,7 +33,11 @@ static void welcome() {
   printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
   Log("Exercise: Please remove me in the source code and compile NEMU again.");
-  assert(0);
+  /*
+  * 在认为不可能的执行到的情况下加一句assert(0)；
+  * 程序没写完的标识；
+  */
+  // assert(0);
 }
 
 #ifndef CONFIG_TARGET_AM
