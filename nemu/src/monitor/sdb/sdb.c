@@ -79,6 +79,7 @@ static int cmd_x(char* args) {
     arg = args + strlen(arg) + 1;
     int addr = 0;
     sscanf(arg, "%d", &addr);
+    printf("addr: %d\n", addr);
     int res;
     for (int i = 0; i < n; i++) {
         res = vaddr_read(addr + i, 1);
