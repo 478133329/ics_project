@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
+#include <memory/paddr.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
@@ -77,13 +78,17 @@ static int cmd_x(char* args) {
     int n = 0;
     sscanf(arg, "%d", &n);
     arg = args + strlen(arg) + 1;
-    int addr = 0;
-    sscanf(arg, "%d", &addr);
-    printf("addr: %d\n", addr);
-    int res;
-    for (int i = 0; i < n; i++) {
-        res = vaddr_read(addr + i, 1);
-        printf("%x\n", res);
+    vaddr_t addr = 0x80000000;
+    sscanf(arg, "0x%lx", &addr);
+
+    vaddr_t begin_addr = (addr > PMEM_LEFT) ? addr : PMEM_LEFT;
+    vaddr_t end_addr = ((addr + n) < PMEM_RIGHT) ? (addr + n) : PMEM_RIGHT;
+    for (vaddr_t p = begin_addr; p < end_addr; p += 8) {
+        printf("%016lx: ", p);
+        for (int slice = 0; slice < 8; slice++) {
+            if (p + slice < end_addr) printf("%02lx ", vaddr_read(p + slice, 1));
+        }
+        printf("\n");
     }
     return 0;
 }
