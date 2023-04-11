@@ -47,6 +47,46 @@ static int cmd_c(char *args) {
   return 0;
 }
 
+static int cmd_si(char* args) {
+    int n = 1;
+    if (args != NULL) {
+        sscanf(args, "%d", &n);
+    }
+    cpu_exec(n);
+    return 0;
+}
+
+static int cmd_info(char* args) {
+    if (args == NULL) {
+        printf("info指令 缺少参数\n");
+    }
+    else if (strcmp(args, "r") == 0) {
+        isa_reg_display();
+    }
+    else {
+        printf("未知的参数 [%s] \n", args);
+    }
+
+    return 0;
+}
+
+word_t vaddr_read(vaddr_t addr, int len);
+
+static int cmd_x(char* args) {
+    char* arg = strtok(NULL, " ");
+    int n = 0;
+    sscanf(arg, "%d", &n);
+    arg = args + strlen(arg) + 1;
+    int addr = 0;
+    sscanf(arg, "%d", &addr);
+    int res;
+    for (int i = 0; i < n; i++) {
+        res = vaddr_read(addr + i, 1);
+        printf("%x\n", res);
+    }
+    return 0;
+}
+
 extern NEMUState nemu_state;
 
 static int cmd_q(char *args) {
@@ -64,6 +104,9 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "", cmd_si },
+  { "info", "", cmd_info },
+  { "x", "", cmd_x },
 
   /* TODO: Add more commands */
 
