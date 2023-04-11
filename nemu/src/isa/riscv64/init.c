@@ -28,9 +28,8 @@ static const uint32_t img [] = {
 
 static void restart() {
   /* Set the initial program counter. */
-  /*
-  * RESET_VECTOR为pc初始化值, 它等于CONFIG_MBASE和CONFIG_PC_RESET_OFFSET相加
-  */
+  //RESET_VECTOR为pc初始化值, 它等于CONFIG_MBASE和CONFIG_PC_RESET_OFFSET相加
+
   cpu.pc = RESET_VECTOR;
 
   /* The zero register is always 0. */
