@@ -139,7 +139,7 @@ void init_monitor(int argc, char *argv[]) {
   init_sdb();
 
   /* Initialize the function tracer. */
-  init_ftracer(elf_file);
+  // init_ftracer(elf_file);
 
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(
