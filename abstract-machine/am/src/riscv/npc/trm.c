@@ -17,8 +17,11 @@ static const char mainargs[] = MAINARGS;
 void putch(char ch) {
 }
 
+#define nemu_trap(code) asm volatile("mv a0, %0; ebreak" : :"r"(code))
+
 void halt(int code) {
-  while (1);
+	nemu_trap(code);
+	while (1);
 }
 
 void _trm_init() {
