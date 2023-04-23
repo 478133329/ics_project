@@ -45,9 +45,22 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 //  [AM_GPU_STATUS] = __am_gpu_status,
 //};
 
+// AM_DEVREG(11, GPU_FBDRAW,   WR, int x, y; void *pixels; int w, h; bool sync);
+#include <stdio.h>
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
+  int window_width = io_read(AM_GPU_CONFIG).width;
+  int x = ctl->x;
+  int y = ctl->y;
+  int w = ctl->w;
+  int h = ctl->h;
+  for (int row = 0; row < h; row++) {
+      for (int col = 0; col < w; col++) {
+          // ((uint32_t**)FB_ADDR)[row + y][col + x] = ((uint32_t**)ctl->pixels)[row][col]; 不能直接将一个指针当作二维数组使用，因为不知道每行有几个元素
+          ((uint32_t*)FB_ADDR)[(y + row) * window_width + x + col] = ((uint32_t*)ctl->pixels)[row * w + col];
+      }
+  }
   if (ctl->sync) {
-    outl(SYNC_ADDR, 1);
+      outl(SYNC_ADDR, 1);
   }
 }
 
