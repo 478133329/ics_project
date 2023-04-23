@@ -20,6 +20,9 @@
 #include <SDL2/SDL.h>
 #endif
 
+//输入设备要额外考虑中断，可以使用轮询替代。
+//如果协议较为简单的话，模拟起来更简单，比如串口和键盘只用一个数据寄存器就可。
+
 void init_map();
 void init_serial();
 void init_timer();
