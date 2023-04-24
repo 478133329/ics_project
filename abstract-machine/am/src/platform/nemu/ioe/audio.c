@@ -35,16 +35,18 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
 	stat->count = inl(AUDIO_COUNT_ADDR);
-	stat->count = inl(AUDIO_FRONT_ADDR);
-	stat->count = inl(AUDIO_REAR_ADDR);
+	stat->front = inl(AUDIO_FRONT_ADDR);
+	stat->rear = inl(AUDIO_REAR_ADDR);
 }
+
+int printf(const char* fmt, ...);
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
 	int32_t buf_size = io_read(AM_AUDIO_CONFIG).bufsize;
 	int32_t full = io_read(AM_AUDIO_STATUS).count;
 	int32_t empty = buf_size - full;
 	int32_t need = ctl->buf.end - ctl->buf.start;
-	int32_t rear = io_read(AM_AUDIO_STATUS).rear;
+	volatile int32_t rear = io_read(AM_AUDIO_STATUS).rear;
 	while (empty < need);
 	for (int i = 0; i < need; i++) {
 		outw(AUDIO_SBUF_ADDR + rear + (2 * i), ((int16_t*)(ctl->buf.start))[i]);

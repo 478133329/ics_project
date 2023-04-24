@@ -35,12 +35,15 @@ enum {
 static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
 
+Uint32 buffer_size;
+
 void audioCallback(void* userdata, Uint8* stream, int len) {
 	if (audio_base[reg_count] == 0) return;
-	len = (len < audio_base[reg_count]) ? len : audio_base[reg_count];
-	intptr_t addr = CONFIG_SB_ADDR + BUF_FRONT;
-	SDL_memcpy(stream, (char*)addr, len);
-	BUF_FRONT += len;
+	len = (buffer_size < audio_base[reg_count]) ? buffer_size : audio_base[reg_count];
+	// 整形不能直接转换为指针类型 应当(uint8_t*)(intptr_t)0x80000000
+	uint8_t* tmp = sbuf + audio_base[reg_front];
+	SDL_memcpy(stream, tmp, len);
+	audio_base[reg_front] += len;
 	audio_base[reg_count] -= len;
 }
 
@@ -52,6 +55,7 @@ void init_audio_dev() {
 	s.format = AUDIO_S16SYS;  // 假设系统中音频数据的格式总是使用16位有符号数来表示
 	s.userdata = NULL;
 	s.callback = audioCallback;
+	buffer_size = s.samples * s.channels * SDL_AUDIO_BITSIZE(s.format) / 8;
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
 	SDL_OpenAudio(&s, NULL);
 	SDL_PauseAudio(0);
@@ -64,8 +68,8 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
 static void sb_io_handler(uint32_t offset, int len, bool is_write) {
 	assert(is_write && len == 2);
 	while (len--) {
-		BUF_REAR = (BUF_REAR + 1) % CONFIG_SB_SIZE;
-		if (BUF_FRONT == BUF_REAR) panic("sb queue over.\n");
+		audio_base[reg_rear] = (audio_base[reg_rear] + 1) % 65536;  // CONFIG_SB_SIZE;
+		if (audio_base[reg_front] == audio_base[reg_rear]) panic("sb queue over.\n");
 		audio_base[reg_count]++;
 	}
 }
@@ -82,7 +86,6 @@ void init_audio() {
 #else
   add_mmio_map("audio", CONFIG_AUDIO_CTL_MMIO, audio_base, space_size, audio_io_handler);
 #endif
-
   sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
   add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, sb_io_handler);
 }
