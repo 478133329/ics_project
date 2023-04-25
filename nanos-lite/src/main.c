@@ -7,6 +7,8 @@ void init_irq(void);
 void init_fs(void);
 void init_proc(void);
 
+// 由于AM的存在nano-lite是架构无关的。
+
 int main() {
   extern const char logo[];
   printf("%s", logo);

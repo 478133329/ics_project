@@ -34,6 +34,7 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
 }
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
+	// 由于copy，导致找了三个小时bug。
 	stat->count = inl(AUDIO_COUNT_ADDR);
 	stat->front = inl(AUDIO_FRONT_ADDR);
 	stat->rear = inl(AUDIO_REAR_ADDR);
