@@ -29,19 +29,19 @@ enum {
   TYPE_J, TYPE_B, TYPE_R,
 };
 
-#define src1R() do { *src1 = R(rs1); } while (0)
-#define src2R() do { *src2 = R(rs2); } while (0)
+#define src1R() do { *src1 = R(*rs1); } while (0)
+#define src2R() do { *src2 = R(*rs2); } while (0)
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
 #define immU() do { *imm = SEXT(BITS(i, 31, 12), 20) << 12; } while(0)
 #define immS() do { *imm = (SEXT(BITS(i, 31, 25), 7) << 5) | BITS(i, 11, 7); } while(0)
 #define immJ() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 20) | (BITS(i, 19, 12) << 12) | (BITS(i, 20, 20) << 11) | (BITS(i, 30, 21) << 1) | 0; } while(0)
 #define immB() do { *imm = (SEXT(BITS(i, 31, 31) ,1) << 12) | (BITS(i, 30, 25) << 5) | (BITS(i ,11, 8) << 1) | (BITS(i, 7, 7) << 11); } while(0)
 
-static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_t *imm, int type) {
+static void decode_operand(Decode *s, int *rs1, int *rs2, int *rd, word_t *src1, word_t *src2, word_t *imm, int type) {
   uint32_t i = s->isa.inst.val;
-  int rs1 = BITS(i, 19, 15);
-  int rs2 = BITS(i, 24, 20);
-  *rd     = BITS(i, 11, 7);
+  *rs1 = BITS(i, 19, 15);
+  *rs2 = BITS(i, 24, 20);
+  *rd  = BITS(i, 11, 7);
   switch (type) {
     case TYPE_I: src1R();          immI(); break;
     case TYPE_U:                   immU(); break;
@@ -53,13 +53,13 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
 }
 
 static int decode_exec(Decode *s) {
-  int rd = 0;
+  int rs1 = 0, rs2 = 0, rd = 0;
   word_t src1 = 0, src2 = 0, imm = 0;
   s->dnpc = s->snpc;
 
 #define INSTPAT_INST(s) ((s)->isa.inst.val)
 #define INSTPAT_MATCH(s, name, type, ... /* execute body */ ) { \
-  decode_operand(s, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
+  decode_operand(s, &rs1, &rs2, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
   __VA_ARGS__ ; \
 }
 
@@ -123,7 +123,6 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000000 ????? ????? 110 ????? 01100 11", or     , R, R(rd) = src1 | src2);
   INSTPAT("0000000 ????? ????? 111 ????? 01100 11", and    , R, R(rd) = src1 & src2);
 
-  // 
   INSTPAT("0000001 ????? ????? 000 ????? 01100 11", mul    , R, R(rd) = src1 * src2);
   // INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh   , R, R(rd) = ((int64_t)src1 * (int64_t)src2) >> 64);
   // INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu , R, R(rd) = ((int64_t)src1 * src2) >> 64);
@@ -138,7 +137,17 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 110 ????? 01110 11", remw   , R, R(rd) = SEXT(BITS((int64_t)src1 % (int64_t)src2, 31, 0), 32));
   INSTPAT("0000001 ????? ????? 111 ????? 01110 11", remuw  , R, R(rd) = SEXT(BITS(src1 % src2, 31, 0), 32));
 
-  INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
+  // rs1 = rd 的情况要注意
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, R(rd) = cpu.csr[csr_decode(imm)], cpu.csr[csr_decode(imm)] = src1);
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, R(rd) = cpu.csr[csr_decode(imm)], cpu.csr[csr_decode(imm)] |= src1);
+  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc  , I, R(rd) = cpu.csr[csr_decode(imm)], cpu.csr[csr_decode(imm)] &= ~src1);
+  INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , I, R(rd) = cpu.csr[csr_decode(imm)], cpu.csr[csr_decode(imm)] = rs1);
+  INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , I, R(rd) = cpu.csr[csr_decode(imm)], cpu.csr[csr_decode(imm)] |= rs1);
+  INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , I, R(rd) = cpu.csr[csr_decode(imm)], cpu.csr[csr_decode(imm)] &= ~rs1);
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, s->dnpc = cpu.csr[2]);
+
+  INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , I, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , I, s->dnpc = isa_raise_intr(11, s->pc));  //11 is environment call fron M-Mode
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
 
   INSTPAT_END();

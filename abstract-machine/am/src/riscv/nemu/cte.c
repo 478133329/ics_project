@@ -4,17 +4,25 @@
 
 static Context* (*user_handler)(Event, Context*) = NULL;
 
+// 针对不同体系结构
+// 切换执行流的原因不同，因此要抽象切换原因。
+// 既然要求切换，就需要保存当前进程的状态，只有通用寄存器堆发生重叠，因此上下文只需保存寄存器堆的内容
+// 而不同体系结构对寄存器对的规定不同，因此要抽象寄存器。
+
+// 从代码来看，异常处理程序仅做事件的分发
 Context* __am_irq_handle(Context *c) {
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
-      default: ev.event = EVENT_ERROR; break;
+    case 11:
+        if (c->GPR1 == -1) { ev.event = EVENT_YIELD; c->mepc += 4; break; }
+        ev.event = EVENT_SYSCALL; break;
+    default: ev.event = EVENT_ERROR; break;
     }
 
     c = user_handler(ev, c);
     assert(c != NULL);
   }
-
   return c;
 }
 
@@ -23,6 +31,8 @@ extern void __am_asm_trap(void);
 bool cte_init(Context*(*handler)(Event, Context*)) {
   // initialize exception entry
   asm volatile("csrw mtvec, %0" : : "r"(__am_asm_trap));
+  asm volatile("li t0, %0" : : "i"(0x0000000a00001800));
+  asm volatile("csrw mstatus, t0");
 
   // register event handler
   user_handler = handler;
