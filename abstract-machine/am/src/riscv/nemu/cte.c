@@ -28,28 +28,33 @@ Context* __am_irq_handle(Context *c) {
 
 extern void __am_asm_trap(void);
 
+// 有了自陷指令, 用户程序就可以将执行流切换到操作系统【指定的入口】了。
+// 用户程序能做的事情很少，基本上只有系统调用传参。
+
 bool cte_init(Context*(*handler)(Event, Context*)) {
-  // initialize exception entry
-  asm volatile("csrw mtvec, %0" : : "r"(__am_asm_trap));
-  asm volatile("li t0, %0" : : "i"(0x0000000a00001800));
-  asm volatile("csrw mstatus, t0");
+    // initialize exception entry
+    asm volatile("csrw mtvec, %0" : : "r"(__am_asm_trap));
+    asm volatile("li t0, %0" : : "i"(0x0000000a00001800));
+    asm volatile("csrw mstatus, t0");
 
-  // register event handler
-  user_handler = handler;
+    // register event handler
+    user_handler = handler;
 
-  return true;
+    return true;
 }
 
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-  return NULL;
+    return NULL;
 }
 
 void yield() {
-  asm volatile("li a7, -1; ecall");
+    // asm volatile("li a7, -1; ecall");
+    asm volatile("li a7, -1");
+    asm volatile("ecall");
 }
 
 bool ienabled() {
-  return false;
+    return false;
 }
 
 void iset(bool enable) {
