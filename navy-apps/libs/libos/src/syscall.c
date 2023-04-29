@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <stdint.h>
 #include <assert.h>
 #include <time.h>
 #include "syscall.h"
@@ -69,13 +70,25 @@ int _open(const char *path, int flags, mode_t mode) {
   return 0;
 }
 
+// Newlib C 库中的 write 函数最终会调用 _write 函数，write -> _write_r -> _write。
 int _write(int fd, void *buf, size_t count) {
   _exit(SYS_write);
   return 0;
 }
 
+// 堆区的使用情况是由libc来进行管理的，但堆区的大小却需要通过系统调用向操作系统提出更改。
+// 在Navy的Newlib中，sbrk()最终会调用_sbrk()。
+extern uint8_t _end;
+static uint8_t* old_break = &_end;
 void *_sbrk(intptr_t increment) {
-  return (void *)-1;
+	uint8_t* new_break = &_end + increment;
+	int ret = _syscall_(SYS_brk, increment, 0, 0);
+	if (ret == 0) {
+		uint8_t* res = old_break;
+		old_break = new_break;
+		return (void*)res;
+	}
+	return (void *)-1;
 }
 
 int _read(int fd, void *buf, size_t count) {

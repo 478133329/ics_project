@@ -29,5 +29,7 @@ SECTIONS {
   _stack_pointer = .;
   end = .;
   _end = .;
+  # ld会默认添加一个名为_end的符号，来指示程序的数据段结束的位置。
+  # 用户程序开始运行的时候，program break会位于_end所指示的位置，意味着此时堆区的大小为0。
   _heap_start = ALIGN(0x1000);
 }
