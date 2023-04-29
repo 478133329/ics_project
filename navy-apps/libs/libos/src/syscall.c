@@ -53,20 +53,25 @@ intptr_t _syscall_(intptr_t type, intptr_t a0, intptr_t a1, intptr_t a2) {
 	return ret;
 }
 
+/* chatgpt linux直接向用户空间提供write接口。
+ssize_t write(int fd, const void *buf, size_t count) {
+	return syscall(SYS_write, fd, buf, count);
+}
+*/
+
 void _exit(int status) {
-	_syscall_(SYS_exit, status, 0, 0);
-	while (1);
+  _syscall_(SYS_exit, status, 0, 0);
+  while (1);
 }
 
 int _open(const char *path, int flags, mode_t mode) {
-	_exit(SYS_open);
-	return 0;
+  _exit(SYS_open);
+  return 0;
 }
 
 int _write(int fd, void *buf, size_t count) {
-	// _exit(SYS_write);
-	int ret = _syscall_(SYS_write, fd, buf, count);
-	return ret;
+  _exit(SYS_write);
+  return 0;
 }
 
 void *_sbrk(intptr_t increment) {
