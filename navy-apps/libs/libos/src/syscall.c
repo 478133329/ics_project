@@ -72,8 +72,8 @@ int _open(const char *path, int flags, mode_t mode) {
 
 // Newlib C 库中的 write 函数最终会调用 _write 函数，write -> _write_r -> _write。
 int _write(int fd, void *buf, size_t count) {
-  _exit(SYS_write);
-  return 0;
+	int ret = _syscall_(SYS_write, fd, buf, count);
+	return ret;
 }
 
 // 堆区的使用情况是由libc来进行管理的，但堆区的大小却需要通过系统调用向操作系统提出更改。

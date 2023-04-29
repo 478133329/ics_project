@@ -27,6 +27,7 @@ void sys_brk(Context* c) {
 void do_syscall(Context *c) {
     uintptr_t a[4];
     a[0] = c->GPR1;
+    Log("syscall %d - ", a[0]);
     switch (a[0]) {
     case SYS_exit: halt(0);
     case SYS_yield: yield(); break;
@@ -34,4 +35,5 @@ void do_syscall(Context *c) {
     case SYS_brk: sys_brk(c); break;
     default: panic("Unhandled syscall ID = %d", a[0]);
     }
+    Log("syscall %d over\n ", a[0]);
 }
