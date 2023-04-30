@@ -3,6 +3,8 @@
 
 #include <fs.h>
 
+#include <sys/time.h>
+
 // 在Linux内核中，系统调用处理程序的命名通常遵循"sys_"前缀的命名约定，如sys_write、sys_read等。
 
 typedef uint32_t mode_t;
@@ -67,6 +69,16 @@ void sys_brk(Context* c) {
     c->GPRx = 0;
 }
 
+void sys_gettimeofday(Context* c) {
+    // (struct timeval* tv, struct timezone* tz)
+    // Warning：返回一个指向内核空间的指针。 如何解决？将用户空间的指针传过来。
+    struct timeval* tv = (struct timeval*)c->GPR2;
+    AM_TIMER_REALTIME_T time = io_read(AM_TIMER_REALTIME);
+    tv->tv_sec = time.us / 1000000;
+    tv->tv_usec = time.us;
+    c->GPRx = 0;
+}
+
 void do_syscall(Context *c) {
     uintptr_t a[4];
     a[0] = c->GPR1;
@@ -80,6 +92,7 @@ void do_syscall(Context *c) {
     case SYS_close: sys_close(c); break;
     case SYS_lseek: sys_lseek(c); break;
     case SYS_brk: sys_brk(c); break;
+    case SYS_gettimeofday: sys_gettimeofday(c); break;
     default: panic("Unhandled syscall ID = %d", a[0]);
     }
 }

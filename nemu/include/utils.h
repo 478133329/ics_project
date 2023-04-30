@@ -32,7 +32,8 @@ extern NEMUState nemu_state;
 
 // ----------- timer -----------
 
-uint64_t get_time();
+uint64_t get_uptime();
+uint64_t get_realtime();
 
 // ----------- log -----------
 

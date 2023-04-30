@@ -38,8 +38,13 @@ static uint64_t get_time_internal() {
   return us;
 }
 
-uint64_t get_time() {
-  if (boot_time == 0) boot_time = get_time_internal();
-  uint64_t now = get_time_internal();
-  return now - boot_time;
+uint64_t get_uptime() {
+    if (boot_time == 0) boot_time = get_time_internal();
+    uint64_t now = get_time_internal();
+    return now - boot_time;
+}
+
+uint64_t get_realtime() {
+    uint64_t now = get_time_internal();
+    return now;
 }
