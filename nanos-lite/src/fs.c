@@ -24,25 +24,17 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 	return 0;
 }
 
-size_t std_read(void* buf, size_t offset, size_t len) {
-	return 0;
-}
 
-size_t std_write(const void* buf, size_t offset, size_t len) {
-	int i = 0;
-	for (i = 0; i < len; i++) {
-		putch(((char*)buf)[offset + i]);
-	}
-	return i;
-}
+// 字节序列没有"位置"的概念, 因此serial_write()中的offset参数可以忽略
+size_t serial_write(const void* buf, size_t offset, size_t len);
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
 	// 参数列表初始数组 int a[] = {1, 2, 3}。
 	// [指定下标] = 4 可使用这种方式指定下标。
-	[FD_STDIN]  = {"stdin", 0, 0, 0, std_read, invalid_write},
-	[FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, std_write},
-	[FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, std_write},
+	[FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
+	[FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, serial_write},
+	[FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
 	{"/bin/hello", 36816, 0},
 	{"/bin/dummy", 33064, 36816},
 
