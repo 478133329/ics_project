@@ -28,16 +28,16 @@ static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
         rtc_port_base[0] = (uint32_t)us;
         rtc_port_base[1] = us >> 32;
     }
-    else if (!is_write == 0 && offset == 8) {
+    else if (!is_write && offset == 8) {
         uint64_t us = get_realtime();
         rtc_port_base[2] = (uint32_t)us;
         rtc_port_base[3] = us >> 32;
     }
-    else if (!is_write == 0 && offset == 16) {
+    else if (!is_write && offset == 16) {
         uint64_t us = get_realtime();
-        time_t t = (time_t)us;
-        time_t* time = &t;
-        struct tm* ptm = gmtime(time);
+        time_t time = (time_t)us;
+        struct tm* ptm = gmtime(&time);
+        // error: lvalue required as unary ¡®&¡¯ operand    ->    struct tm* ptm = gmtime(&((time_t)us));
         rtc_port_base[4] = ptm->tm_sec;
         rtc_port_base[5] = ptm->tm_min;
         rtc_port_base[6] = ptm->tm_hour;
@@ -59,9 +59,9 @@ static void timer_intr() {
 void init_timer() {
   rtc_port_base = (uint32_t *)new_space(40);
 #ifdef CONFIG_HAS_PORT_IO
-  add_pio_map ("rtc", CONFIG_RTC_PORT, rtc_port_base, 8, rtc_io_handler);
+  add_pio_map ("rtc", CONFIG_RTC_PORT, rtc_port_base, 40, rtc_io_handler);
 #else
-  add_mmio_map("rtc", CONFIG_RTC_MMIO, rtc_port_base, 8, rtc_io_handler);
+  add_mmio_map("rtc", CONFIG_RTC_MMIO, rtc_port_base, 40, rtc_io_handler);
 #endif
   IFNDEF(CONFIG_TARGET_AM, add_alarm_handle(timer_intr));
 }
