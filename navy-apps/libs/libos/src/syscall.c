@@ -61,13 +61,13 @@ ssize_t write(int fd, const void *buf, size_t count) {
 */
 
 void _exit(int status) {
-  _syscall_(SYS_exit, status, 0, 0);
-  while (1);
+	_syscall_(SYS_exit, status, 0, 0);
+	while (1);
 }
 
 int _open(const char *path, int flags, mode_t mode) {
-  _exit(SYS_open);
-  return 0;
+	int ret = _syscall_(SYS_open, path, flags, mode);
+	return ret;
 }
 
 // Newlib C 库中的 write 函数最终会调用 _write 函数，write -> _write_r -> _write。
@@ -107,7 +107,7 @@ int _close(int fd) {
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-	int ret = _syscall_(SYS_read, fd, offset, whence);
+	int ret = _syscall_(SYS_lseek, fd, offset, whence);
 	return ret;
 }
 
