@@ -78,6 +78,11 @@ int _write(int fd, void *buf, size_t count) {
 
 // 堆区的使用情况是由libc来进行管理的，但堆区的大小却需要通过系统调用向操作系统提出更改。
 // 在Navy的Newlib中，sbrk()最终会调用_sbrk()。
+/*
+批处理(batching)的技术：将一些简单的任务累积起来，然后再一次性进行处理，【缓冲区】是批处理技术的核心。
+libc中的fread()和fwrite()正是通过缓冲区来将数据累积起来，然后再通过一次系统调用进行处理。
+例如通过一个1024字节的缓冲区，就可以通过一次系统调用直接输出1024个字符，而不需要通过1024次系统调用来逐个字符地输出。
+*/
 extern uint8_t _end;
 static uint8_t* old_break = &_end;
 void *_sbrk(intptr_t increment) {
@@ -92,18 +97,18 @@ void *_sbrk(intptr_t increment) {
 }
 
 int _read(int fd, void *buf, size_t count) {
-  _exit(SYS_read);
-  return 0;
+	int ret = _syscall_(SYS_read, fd, buf, count);
+	return ret;
 }
 
 int _close(int fd) {
-  _exit(SYS_close);
-  return 0;
+	int ret = _syscall_(SYS_close, fd, 0, 0);
+	return ret;
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-  _exit(SYS_lseek);
-  return 0;
+	int ret = _syscall_(SYS_read, fd, offset, whence);
+	return ret;
 }
 
 int _gettimeofday(struct timeval *tv, struct timezone *tz) {
