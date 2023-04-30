@@ -70,6 +70,10 @@ size_t ramdisk_read(void* buf, size_t offset, size_t len);
 
 size_t ramdisk_write(const void* buf, size_t offset, size_t len);
 
+/*
+文件大小固定，read、write时应注意偏移量不要超过SEEK_END。
+*/
+
 size_t fs_read(int fd, void* buf, size_t len) {
 	size_t ret = 0;
 	if (file_table[fd].read != NULL) {
@@ -78,7 +82,6 @@ size_t fs_read(int fd, void* buf, size_t len) {
 	}
 	else {
 		size_t offset = file_table[fd].disk_offset + file_table[fd].current_offset;
-		printf("offset: %d, len: %d\n", (int)offset, (int)len);
 		ret = ramdisk_read(buf, offset, len);
 		file_table[fd].current_offset = (file_table[fd].current_offset + len < file_table[fd].size) ? file_table[fd].current_offset + len : file_table[fd].size;
 	}
