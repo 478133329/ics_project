@@ -53,16 +53,17 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 	if (input.keycode != 0) {
 		// char key[] = keyname[input.keycode];  error: 不能在声明数组时使用另一个数组的元素来初始化它。
 		char key[20];
+		char result[20];
 		strncpy(key, keyname[input.keycode], 20);
-		strcat(key, "\n");
-		if (input.keydown) {
-			strcat("kd ", key);
+		if (input.keydown == true) {
+			sprintf(result, "kd %s\n", key);
 		}
 		else {
-			strcat("ku ", key);
+			sprintf(result, "ku %s\n", key);
 		}
-		strncpy(buf, key, len); 
-		int ret = (sizeof(key) < len) ? sizeof(key) : len;
+		printf("result %s\n", result);
+		strncpy(buf, result, len);
+		int ret = (strlen(result) < len) ? strlen(result) : len;
 		return ret;
 	}
 	return 0;
