@@ -151,8 +151,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
 
   /*
-  #define NEMUTRAP(thispc, code) set_nemu_state(NEMU_END, thispc, code)
-  #define INV(thispc) invalid_inst(thispc)
+  #define NEMUTRAP(thispc, code) set_nemu_state(NEMU_END, thispc, code) // set NEMU_END with success or failure
+  #define INV(thispc) invalid_inst(thispc)  // set NEMU_ABORT
   */
 
   /*

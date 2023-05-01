@@ -16,8 +16,16 @@ uint32_t NDL_GetTicks() {
     return (uint32_t)tv.tv_usec / 1000;
 }
 
+/*
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+*/
+
 int NDL_PollEvent(char *buf, int len) {
-  return 0;
+    int fd = open("/dev/event", 0);
+    int ret = read(fd, buf, len);
+    return ret;
 }
 
 void NDL_OpenCanvas(int *w, int *h) {

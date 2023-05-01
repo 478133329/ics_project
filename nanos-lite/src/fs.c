@@ -27,16 +27,16 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 
 // 字节序列没有"位置"的概念, 因此serial_write()中的offset参数可以忽略
 size_t serial_write(const void* buf, size_t offset, size_t len);
+size_t events_read(void* buf, size_t offset, size_t len);
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
 	// 参数列表初始数组 int a[] = {1, 2, 3}。
 	// [指定下标] = 4 可使用这种方式指定下标。
-	[FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
+	[FD_STDIN] = {"stdin", 0, 0, 0, invalid_read, invalid_write},
 	[FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, serial_write},
 	[FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
-	{"/bin/hello", 36816, 0},
-	{"/bin/dummy", 33064, 36816},
+	{"/dev/event", 0, 0, 0, events_read, invalid_write},
 
 	#include "files.h"
 };
@@ -44,8 +44,6 @@ static Finfo file_table[] __attribute__((used)) = {
 void init_fs() {
   // TODO: initialize the size of /dev/fb
 }
-
-#include <stdio.h>
 
 int fs_open(const char* pathname, int flags, int mode) {
 	// 获取数组中元素的个数，可以使用 sizeof(a) / sizeof(a[0]) 的形式来计算。
