@@ -24,15 +24,15 @@ CPU只认识已经完成了独立编址的寄存器堆和地址线提供的寻址空间
 
 void putch(char ch) {
 	// static inline void outb(uintptr_t addr, uint8_t  data) { *(volatile uint8_t  *)addr = data; }
-  outb(SERIAL_PORT, ch);
+	outb(SERIAL_PORT, ch);
 }
 
 void halt(int code) {
-	;
-  nemu_trap(code);
+	// # define nemu_trap(code) asm volatile("mv a0, %0; ebreak" : :"r"(code))
+	nemu_trap(code);
 
-  // should not reach here
-  while (1);
+	// should not reach here
+	while (1);
 }
 
 void _trm_init() {

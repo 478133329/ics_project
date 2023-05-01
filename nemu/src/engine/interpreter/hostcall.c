@@ -18,6 +18,7 @@
 #include <isa.h>
 #include <cpu/difftest.h>
 
+// 要成为什么状态并且在何处发生了该状态变化
 void set_nemu_state(int state, vaddr_t pc, int halt_ret) {
   difftest_skip_ref();
   nemu_state.state = state;
