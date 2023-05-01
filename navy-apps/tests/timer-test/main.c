@@ -3,7 +3,14 @@
 
 int main() {
 	struct timeval tv = {};
-	int ret = gettimeofday(&tv, NULL);
-	printf("tv.tv_sec: %d\n", tv.tv_sec);
+	gettimeofday(&tv, NULL);
+	time_t old = tv.tv_usec;
+	while (1) {
+		gettimeofday(&tv, NULL);
+		if (tv.tv_usec - old > 500 * 1000) {
+			old = tv.tv_usec;
+			printf("hello timer.\n");
+		}
+	}
 	return 0;
 }
