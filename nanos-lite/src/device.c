@@ -72,7 +72,11 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
 	return ret;
 }
 
+// AM_DEVREG(12, GPU_FBDRAW,     WR, int x, y; void *pixels; int w, h; bool sync);
+// AM_DEVREG(13, GPU_MEMCPY,     WR, uint32_t dest; void *src; int size);
 size_t fb_write(const void *buf, size_t offset, size_t len) {
+	io_write(AM_GPU_MEMCPY, offset, buf, len);
+	io_write(AM_GPU_FBDRAW, 0, 0, NULL, 0, 0, true);
 	return 0;
 }
 

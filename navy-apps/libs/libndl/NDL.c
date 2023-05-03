@@ -29,15 +29,15 @@ int NDL_PollEvent(char *buf, int len) {
     return ret;
 }
 
-#define GPU_CONFIG_SIZE 50
-
 static int screen_w = 0, screen_h = 0;
-static int canvas_w = 0, canvas_h = 0;
+static int canvas_w = 0, canvas_h = 0, canvas_x = 0, canvas_y = 0;
 
 void NDL_OpenCanvas(int *w, int *h) {
     if (*w == 0 && *h == 0) {
         canvas_w = screen_w;
         canvas_h = screen_h;
+        *w = canvas_w;
+        *h = canvas_h;
     }
     else {
         if (*w > screen_w || *h > screen_h) {
@@ -46,6 +46,11 @@ void NDL_OpenCanvas(int *w, int *h) {
         canvas_w = *w;
         canvas_h = *w;
     }
+    canvas_x = (screen_w - canvas_w) / 2;
+    canvas_y = (screen_h - canvas_h) / 2;
+    printf("screen_w: %d, screen_h: %d\n", screen_w, screen_h);
+    printf("canvas_w: %d, canvas_h: %d\n", canvas_w, canvas_h);
+    printf("canvas_x: %d, canvas_y: %d\n", canvas_x, canvas_y);
 
     if (getenv("NWM_APP")) {
         int fbctl = 4;
@@ -67,6 +72,12 @@ void NDL_OpenCanvas(int *w, int *h) {
 }
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
+    fbdev = open("/dev/fb", 0);
+    for (int i = 0; i < h; i++) {
+        lseek(fbdev, ((canvas_y + y + i) * screen_w + (canvas_x + x)) * sizeof(uint32_t), SEEK_SET);
+        write(fbdev, pixels + i * w, w * sizeof(uint32_t));
+    }
+    close(fbdev);
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
@@ -83,8 +94,6 @@ int NDL_QueryAudio() {
   return 0;
 }
 
-#define DISPINFO_SIZE 512
-
 static void read_key_value(char* key_value, char* key, int* value) {
     int len = strlen(key_value);
     char buf[128];
@@ -97,17 +106,17 @@ static void read_key_value(char* key_value, char* key, int* value) {
 }
 
 int NDL_Init(uint32_t flags) {
-    char dispinfo[DISPINFO_SIZE];
+    char dispinfo[512];
     int fd = open("/proc/dispinfo", 0);
-    read(fd, dispinfo, DISPINFO_SIZE);
+    read(fd, dispinfo, 512);
     /*
     WIDTH   :  100
     HEIGHT  :  100
     */
-    char key[128];
-    int value = 0;
     char* key_value = strtok(dispinfo, "\n");
     while (key_value != NULL) {
+        char key[128];
+        int value = 0;
         read_key_value(key_value, key, &value);
         if (strcmp(key, "WIDTH") == 0) {
             screen_w = value;
@@ -117,7 +126,8 @@ int NDL_Init(uint32_t flags) {
         }
         key_value = strtok(NULL, "\n");
     }
-    printf("screen_w: %d, screen_h: %d\n", screen_w, screen_h);
+    // printf("screen_w: %d, screen_h: %d\n", screen_w, screen_h);
+
     if (getenv("NWM_APP")) {
         evtdev = 3;
     }

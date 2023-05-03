@@ -30,6 +30,8 @@ size_t serial_write(const void* buf, size_t offset, size_t len);
 size_t events_read(void* buf, size_t offset, size_t len);
 size_t dispinfo_read(void* buf, size_t offset, size_t len);
 size_t fb_write(const void* buf, size_t offset, size_t len);
+size_t ramdisk_read(void* buf, size_t offset, size_t len);
+size_t ramdisk_write(const void* buf, size_t offset, size_t len);
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
@@ -46,7 +48,9 @@ static Finfo file_table[] __attribute__((used)) = {
 };
 
 void init_fs() {
-  // TODO: initialize the size of /dev/fb
+	// TODO: initialize the size of /dev/fb
+	AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
+	file_table[FD_FB].size = config.width * config.height * sizeof(uint32_t);
 }
 
 int fs_open(const char* pathname, int flags, int mode) {
@@ -60,10 +64,6 @@ int fs_open(const char* pathname, int flags, int mode) {
 	assert(0);
 }
 
-size_t ramdisk_read(void* buf, size_t offset, size_t len);
-
-size_t ramdisk_write(const void* buf, size_t offset, size_t len);
-
 /*
 文件大小固定，read、write时应注意偏移量不要超过SEEK_END。
 */
@@ -71,7 +71,7 @@ size_t ramdisk_write(const void* buf, size_t offset, size_t len);
 size_t fs_read(int fd, void* buf, size_t len) {
 	size_t ret = 0;
 	if (file_table[fd].read != NULL) {
-		size_t offset = file_table[fd].disk_offset;
+		size_t offset = /*file_table[fd].disk_offset*/ + file_table[fd].current_offset;
 		ret = file_table[fd].read(buf, offset, len);
 	}
 	else {
@@ -86,7 +86,7 @@ size_t fs_read(int fd, void* buf, size_t len) {
 size_t fs_write(int fd, const void* buf, size_t len) {
 	size_t ret = 0;
 	if (file_table[fd].write != NULL) {
-		size_t offset = file_table[fd].disk_offset;
+		size_t offset = /*file_table[fd].disk_offset*/ + file_table[fd].current_offset;
 		ret = file_table[fd].write(buf, offset, len);
 	}
 	else {
