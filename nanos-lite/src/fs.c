@@ -12,7 +12,7 @@ typedef struct {
   WriteFn write;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENT, FD_DISPINFO, FD_FB};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
 	panic("should not reach here");
@@ -28,15 +28,19 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 // 字节序列没有"位置"的概念, 因此serial_write()中的offset参数可以忽略
 size_t serial_write(const void* buf, size_t offset, size_t len);
 size_t events_read(void* buf, size_t offset, size_t len);
+size_t dispinfo_read(void* buf, size_t offset, size_t len);
+size_t fb_write(const void* buf, size_t offset, size_t len);
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
 	// 参数列表初始数组 int a[] = {1, 2, 3}。
 	// [指定下标] = 4 可使用这种方式指定下标。
-	[FD_STDIN] = {"stdin", 0, 0, 0, invalid_read, invalid_write},
-	[FD_STDOUT] = {"stdout", 0, 0, 0, invalid_read, serial_write},
-	[FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
-	{"/dev/event", 0, 0, 0, events_read, invalid_write},
+	[FD_STDIN]    = {"stdin"         , 0, 0, 0, invalid_read , invalid_write},
+	[FD_STDOUT]   = {"stdout"        , 0, 0, 0, invalid_read , serial_write },
+	[FD_STDERR]   = {"stderr"        , 0, 0, 0, invalid_read , serial_write },
+	[FD_EVENT]    = {"/dev/event"    , 0, 0, 0, events_read  , invalid_write},
+	[FD_DISPINFO] = {"/proc/dispinfo", 0, 0, 0, dispinfo_read, invalid_write},
+	[FD_FB]       = {"/dev/fb"       , 0, 0, 0, invalid_read , fb_write     },
 
 	#include "files.h"
 };
@@ -92,10 +96,6 @@ size_t fs_write(int fd, const void* buf, size_t len) {
 	}
 	return ret;
 }
-
-/*
-
-*/
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
 	int off = offset;

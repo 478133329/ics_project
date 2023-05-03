@@ -52,25 +52,24 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 	AM_INPUT_KEYBRD_T input = io_read(AM_INPUT_KEYBRD);
 	if (input.keycode != 0) {
 		// char key[] = keyname[input.keycode];  error: 不能在声明数组时使用另一个数组的元素来初始化它。
-		char key[20];
-		char result[20];
-		strncpy(key, keyname[input.keycode], 20);
+		int ret = 0;
 		if (input.keydown == true) {
-			sprintf(result, "kd %s\n", key);
+			ret = snprintf(buf, len, "kd %s\n", keyname[input.keycode]);
 		}
 		else {
-			sprintf(result, "ku %s\n", key);
+			ret = snprintf(buf, len, "ku %s\n", keyname[input.keycode]);
 		}
-		printf("result %s\n", result);
-		strncpy(buf, result, len);
-		int ret = (strlen(result) < len) ? strlen(result) : len;
 		return ret;
 	}
 	return 0;
 }
 
+// AM_DEVREG(10, GPU_CONFIG,     RD, bool present, has_accel; int width, height, vmemsz);
+// `/proc/dispinfo`：屏幕信息，包含的keys：`WIDTH`表示宽度，`HEIGHT`表示高度。
 size_t dispinfo_read(void *buf, size_t offset, size_t len) {
-	return 0;
+	AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
+	int ret = snprintf(buf, len, "WIDTH : %d\nHEIGHT : %d\n", config.width, config.height);
+	return ret;
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
