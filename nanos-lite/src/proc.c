@@ -10,6 +10,7 @@ void switch_boot_pcb() {
   current = &pcb_boot;
 }
 
+// 测试函数作为一个程序
 void hello_fun(void *arg) {
   int j = 1;
   while (1) {
@@ -20,17 +21,27 @@ void hello_fun(void *arg) {
 }
 
 void naive_uload(PCB* pcb, const char* filename);
+void context_kload(PCB* pcb, void (*entry)(void*), void* arg);
+
 
 void init_proc() {
-  switch_boot_pcb();
 
-  Log("Initializing processes...");
+    context_kload(&pcb[0], hello_fun, NULL);
+    switch_boot_pcb();
 
-  // load program here
-  naive_uload(NULL, "/bin/bmp-test");
+    Log("Initializing processes...");
+
+    // load program here
+    // naive_uload(NULL, "/bin/bmp-test");
 
 }
 
+
 Context* schedule(Context *prev) {
-  return NULL;
+    // 前面分析，一个进程在保存完上下文后，pcb中的cp实际上和sp指向用一个内存区域。
+    // 但是pcb中的cp并不是连续赋值，需要在被切换走的时候，要手动更新。
+    current->cp = prev;
+
+    current = &pcb[0];
+    return current->cp;
 }

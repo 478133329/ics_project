@@ -40,14 +40,22 @@ __am_asm_trap:
   STORE t0, OFFSET_CAUSE(sp)
   STORE t1, OFFSET_STATUS(sp)
   STORE t2, OFFSET_EPC(sp)
+  # 多道程序中，各进程空间是隔离的，每个进程的内存状态机分析范围缩小到每个进程空间。
+  # 到此，包括正确的SP在内的所有状态得到了保存，内存中各进程空间是个隔离的，根据这些状态完全可以还原进程的运行。
 
   # set mstatus.MPRV to pass difftest
   li a0, (1 << 17)
   or t1, t1, a0
   csrw mstatus, t1
 
+  # 一个子程序从开始到结束，出栈操作次数一般等于入栈操作次数，__am_irq_handle调用完成后，sp指针依旧是上一个进程的sp指针。
   mv a0, sp
   jal __am_irq_handle
+
+  # 异常服务完成后，仅需根据各进程的SP，就能选择还原某个进程。
+  mv a0, sp
+  jal schedule
+  mv sp, a0
 
   LOAD t1, OFFSET_STATUS(sp)
   LOAD t2, OFFSET_EPC(sp)

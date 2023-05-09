@@ -44,8 +44,29 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
     return true;
 }
 
+/*
+typedef struct {
+  void *start, *end;
+} Area;
+*/
+
+/*
+struct Context {
+  uintptr_t gpr[32], mcause, mstatus, mepc;
+  void *pdir;
+};
+*/
+// 栈向低地址生长
+// 那么, 对于刚刚加载完的进程, 我们要怎么切换到它来让它运行起来呢?
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-    return NULL;
+    Context* cp = kstack.end;
+    /* 
+    mepc理解为：程序要从这继续运行。 
+    因为这是为一个新程序创建/初始化上下文，mepc可理解为：程序从这里【开始】运行。
+    */
+    cp->mepc = (uintptr_t)entry;
+    cp->sp = (uintptr_t)cp;
+    return cp;
 }
 
 void yield() {

@@ -48,3 +48,11 @@ void naive_uload(PCB *pcb, const char *filename) {
 	((void (*) ())entry) ();
 }
 
+void context_kload(PCB* pcb, void (*entry)(void*), void* arg) {
+	Area stack;
+	stack.start = &pcb->stack;
+	stack.end = &(pcb->stack)[sizeof(uintptr_t) + sizeof(Context) - 1];
+	Context* cp = kcontext(stack, entry, arg);
+	// 指针转换为整形，使用intptr_t类型，因为不同平台指针类型可能为32/64位。
+	*(uintptr_t*)pcb->stack = (uintptr_t)cp;
+}
