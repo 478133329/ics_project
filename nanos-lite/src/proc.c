@@ -26,7 +26,9 @@ void context_kload(PCB* pcb, void (*entry)(void*), void* arg);
 
 void init_proc() {
 
-    context_kload(&pcb[0], hello_fun, NULL);
+    context_kload(&pcb[0], hello_fun, "first thread");
+    context_kload(&pcb[1], hello_fun, "second thread");
+
     switch_boot_pcb();
 
     Log("Initializing processes...");
@@ -42,6 +44,6 @@ Context* schedule(Context *prev) {
     // 但是pcb中的cp并不是连续赋值，需要在被切换走的时候，要手动更新。
     current->cp = prev;
 
-    current = &pcb[0];
+    current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
     return current->cp;
 }

@@ -56,6 +56,7 @@ struct Context {
   void *pdir;
 };
 */
+
 // 栈向低地址生长
 // 那么, 对于刚刚加载完的进程, 我们要怎么切换到它来让它运行起来呢?
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
@@ -64,8 +65,17 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
     mepc理解为：程序要从这继续运行。 
     因为这是为一个新程序创建/初始化上下文，mepc可理解为：程序从这里【开始】运行。
     */
+
+    // riscv64, 把上下文结构中的mstatus设置为0xa00001800。
+    // 如果不设置，会发现spike的mcause，有时为8，有时为11。
+    // 
+    // uintptr_t和intptr_t的不同点之一：符号位扩展。
+    cp->mstatus = 0xa00001800;
+
+    cp->GPR2 = (uintptr_t)arg;
     cp->mepc = (uintptr_t)entry;
     cp->sp = (uintptr_t)cp;
+
     return cp;
 }
 
