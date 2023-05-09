@@ -41,7 +41,7 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 	return ehdr.e_entry;
 }
 
-void naive_uload(PCB *pcb, const char *filename) {
+void naive_uload(PCB *pcb, const char* filename) {
 	uintptr_t entry = loader(pcb, filename);
 	Log("Jump to entry = %p", entry);
 	// 借助函数指针 void (*) ()，完成一个简单的跳转指令。
@@ -50,9 +50,19 @@ void naive_uload(PCB *pcb, const char *filename) {
 
 void context_kload(PCB* pcb, void (*entry)(void*), void* arg) {
 	Area stack;
-	stack.start = &pcb->stack;
-	stack.end = &(pcb->stack)[sizeof(uintptr_t) + sizeof(Context) - 1];
+	stack.start = &pcb->stack[STACK_SIZE - 1];
+	stack.end = &pcb->stack[STACK_SIZE - sizeof(Context)];
 	Context* cp = kcontext(stack, entry, arg);
 	// 指针转换为整形，使用intptr_t类型，因为不同平台指针类型可能为32/64位。
-	*(uintptr_t*)pcb->stack = (uintptr_t)cp;
+	pcb->info.cp = cp;
+}
+
+void context_uload(PCB* pcb, const char* filename) {
+	uintptr_t entry = loader(pcb, filename);
+	Area stack;
+	stack.start = &pcb->stack;
+	stack.end = &(pcb->stack)[sizeof(uintptr_t) - 1];
+	Context* cp = ucontext(NULL, stack, (void*)entry);
+	// 指针转换为整形，使用intptr_t类型，因为不同平台指针类型可能为32/64位。
+	*pcb->info.cp = *cp;
 }

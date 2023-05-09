@@ -22,7 +22,7 @@ void hello_fun(void *arg) {
 
 void naive_uload(PCB* pcb, const char* filename);
 void context_kload(PCB* pcb, void (*entry)(void*), void* arg);
-
+void context_uload(PCB* pcb, const char* filename);
 
 void init_proc() {
 
@@ -34,6 +34,9 @@ void init_proc() {
     Log("Initializing processes...");
 
     // load program here
+    // 
+    // navy-test程序的执行前并没有像nano-lite一样，通过start.S初始化了sp。
+    // 此时navy-test使用的是内核栈，naive_uload，更像是一个子函数调用。
     // naive_uload(NULL, "/bin/bmp-test");
 
 }
@@ -42,8 +45,8 @@ void init_proc() {
 Context* schedule(Context *prev) {
     // 前面分析，一个进程在保存完上下文后，pcb中的cp实际上和sp指向用一个内存区域。
     // 但是pcb中的cp并不是连续赋值，需要在被切换走的时候，要手动更新。
-    current->cp = prev;
+    current->info.cp = prev;
 
     current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
-    return current->cp;
+    return current->info.cp;
 }
