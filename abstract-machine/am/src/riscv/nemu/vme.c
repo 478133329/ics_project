@@ -70,11 +70,14 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
-    //kstack.end = ;
-    //Context cp = ;
-    //cp->mstatus = ;
-    //cp->mepc = ;
-    //cp->sp = ;
+    Context *cp = kstack.end;
+
+    cp->mstatus = 0xa00001800;
+
+    cp->mepc = (uintptr_t)entry;
+
+    // 创建一个进程时，只要给出一个启动pc，然后会执行进程_start，而_start最重要的工作之一就是初始化C环境，也就是初始化sp。
+    // cp->sp = (uintptr_t)cp;
     
-    return NULL;
+    return cp;
 }

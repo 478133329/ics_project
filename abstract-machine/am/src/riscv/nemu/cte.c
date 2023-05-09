@@ -72,9 +72,10 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
     // uintptr_t和intptr_t的不同点之一：符号位扩展。
     cp->mstatus = 0xa00001800;
 
-    cp->GPR2 = (uintptr_t)arg;
     cp->mepc = (uintptr_t)entry;
     cp->sp = (uintptr_t)cp;
+
+    cp->GPR2 = (uintptr_t)arg;
 
     return cp;
 }

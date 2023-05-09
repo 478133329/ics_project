@@ -30,7 +30,7 @@ void isa_reg_display() {
     printf("mstatus: 0x%016lx\n", cpu.csr[0]);
     printf("mtvec:   0x%016lx\n", cpu.csr[1]);
     printf("mepc:    0x%016lx\n", cpu.csr[2]);
-    printf("mcause:    0x%016lx\n", cpu.csr[3]);
+    printf("mcause:  0x%016lx\n", cpu.csr[3]);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

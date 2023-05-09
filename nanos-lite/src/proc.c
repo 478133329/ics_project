@@ -22,12 +22,16 @@ void hello_fun(void *arg) {
 
 void naive_uload(PCB* pcb, const char* filename);
 void context_kload(PCB* pcb, void (*entry)(void*), void* arg);
-void context_uload(PCB* pcb, const char* filename);
+void context_uload(PCB* pcb, const char* filename, char* const argv[], char* const envp[]);
 
 void init_proc() {
 
     context_kload(&pcb[0], hello_fun, "first thread");
-    context_kload(&pcb[1], hello_fun, "second thread");
+    // context_kload(&pcb[1], hello_fun, "second thread");
+    // context_uload(&pcb[0], "/bin/hello");
+    char* const argv[] = { "wang" , NULL };
+    // char* const envp[] = { "hello", "world" };
+    context_uload(&pcb[1], "/bin/hello", argv, NULL);
 
     switch_boot_pcb();
 
