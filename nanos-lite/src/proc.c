@@ -49,8 +49,8 @@ void init_proc() {
 Context* schedule(Context *prev) {
     // 前面分析，一个进程在保存完上下文后，pcb中的cp实际上和sp指向用一个内存区域。
     // 但是pcb中的cp并不是连续赋值，需要在被切换走的时候，要手动更新。
-    current->info.cp = prev;
+    current->cp = prev;
 
     current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
-    return current->info.cp;
+    return current->cp;
 }

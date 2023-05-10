@@ -8,11 +8,11 @@ void call_main(uintptr_t *args) {
   // char *empty[] =  { NULL };
   // environ = empty;
 
-  int64_t argc = *args;
+  int argc = *(int*)args;
 
-  char** argv = (char**)(args + 1);
+  char** argv = (char**)((int*)args + 1);
 
-  char** envp = (char**)(args + argc + 2);
+  char** envp = argv + argc + 1;
 
   environ = envp;
 

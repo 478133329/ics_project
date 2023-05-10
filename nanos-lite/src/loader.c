@@ -50,63 +50,69 @@ void naive_uload(PCB *pcb, const char* filename) {
 
 void context_kload(PCB* pcb, void (*entry)(void*), void* arg) {
 	Area stack;
-	stack.start = &pcb->stack[STACK_SIZE - 1];
-	stack.end = &pcb->stack[STACK_SIZE - sizeof(Context)];
+	stack.start = &pcb->stack;
+	stack.end = &pcb->stack[STACK_SIZE - 1];
 	Context* cp = kcontext(stack, entry, arg);
 	// 指针转换为整形，使用intptr_t类型，因为不同平台指针类型可能为32/64位。
-	pcb->info.cp = cp;
+	pcb->cp = cp;
 }
 
 void context_uload(PCB* pcb, const char* filename, char* const argv[], char* const envp[]) {
 	uintptr_t entry = loader(pcb, filename);
 
 	Area stack;
-	stack.start = &pcb->stack[STACK_SIZE];
-	stack.end = &pcb->stack[STACK_SIZE - sizeof(Context)];
+	stack.start = &pcb->stack;
+	stack.end = &pcb->stack[STACK_SIZE - 1];
 
 	Context* cp = ucontext(NULL, stack, (void*)entry);
 
-	// 将GPRx设置为argc所在的地址
-	cp->GPRx = (uintptr_t)(heap.end - sizeof(uintptr_t));  // heap.end = 0x88000000 越界
-
-	// ucos中在OSTaskInit时，也是通过参数寄存器传递void* arg。
-
-	// 先确定args在栈中的内存结构。
-	uintptr_t* argc_ptr = (uintptr_t*)cp->GPRx;
 	int argc = 0;
-	if (argv) {
-	 	for (; argv[argc]; ++argc) { printf("%s\n", argv[argc]); }
-	 }
-	
-	uintptr_t* argv_ptr = argc_ptr - 1;
-
-	uintptr_t* envp_ptr = argv_ptr - argc - 1;
 	int envc = 0;
+	if (argv) {
+		for (; argv[argc]; ++argc) {}
+	}
 	if (envp) {
 		for (; envp[envc]; ++envc) {}
 	}
 
-	uintptr_t* str_ptr = envp_ptr - envc - 1;
+	int str_size = 0;
+	for (int i = 0; i < argc; i++) {
+		str_size += strlen(argv[i]);
+	}
+	for (int i = 0; i < envc; i++) {
+		str_size += strlen(envp[i]);
+	}
+
+	// 将GPRx设置为argc所在的地址
+	cp->GPRx = (uintptr_t)((uint8_t*)heap.end - (argc + envc + 1 + 2) * sizeof(uintptr_t) - str_size);  // heap.end = 0x88000000 越界
+
+	// ucos中在OSTaskInit时，也是通过参数寄存器传递void* arg。
+
+	// 先确定args在栈中的内存结构。
+	int* argc_ptr = (int*)cp->GPRx;
+
+	uintptr_t* argv_ptr = (uintptr_t*)(argc_ptr + 1);
+
+	uintptr_t* envp_ptr = argv_ptr + argc + 1;
+
+	char* str_ptr = (char*)(envp_ptr + envc + 1);
 	
 	// 向argc、argv、envp、str区域中填值。
-	*(uintptr_t*)argc_ptr = argc;
+	*argc_ptr = argc;
 	
-	printf("argc: %d\n", argc);
 	for (int i = 0; i < argc; i++) {
 		int n = strlen(argv[i]);
-		str_ptr -= ((n + 7) / 8);
-		printf("argv_ptr: %x\n", (uintptr_t)argv_ptr);
 		memcpy(str_ptr, argv[i], n);
 		((char**)argv_ptr)[i] = (char*)str_ptr;
+		str_ptr += n;
 	}
 	
 	for (int i = 0; i < envc; i++) {
 		int n = strlen(envp[i]);
-		str_ptr -= ((n + 7) / 8);
 		memcpy(str_ptr, envp[i], n);
 		((char**)envp_ptr)[i] = (char*)str_ptr;
+		str_ptr += n;
 	}
 
-	printf("debug\n");
-	pcb->info.cp = cp;
+	pcb->cp = cp;
 }

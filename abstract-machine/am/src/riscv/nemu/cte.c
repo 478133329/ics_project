@@ -60,7 +60,8 @@ struct Context {
 // 栈向低地址生长
 // 那么, 对于刚刚加载完的进程, 我们要怎么切换到它来让它运行起来呢?
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-    Context* cp = kstack.end;
+    // 不同类型指针需要显式转换。
+    Context* cp = (Context*)((uint8_t*)kstack.end - sizeof(Context) + 1);
     /* 
     mepc理解为：程序要从这继续运行。 
     因为这是为一个新程序创建/初始化上下文，mepc可理解为：程序从这里【开始】运行。

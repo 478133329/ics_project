@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
     j ++;
     if (j == 10000) {
       printf("Hello World from Navy-apps for the %dth time!\n", i ++);
-	  printf("argc is: %d\n", argc);
+	  printf("argc is: %d, and the argv[0] is %s\n", argc, argv[0]);
       j = 0;
     }
   }

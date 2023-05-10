@@ -70,7 +70,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
-    Context *cp = kstack.end;
+    Context *cp = (Context*)((uint8_t*)kstack.end - sizeof(Context) + 1);
 
     cp->mstatus = 0xa00001800;
 
