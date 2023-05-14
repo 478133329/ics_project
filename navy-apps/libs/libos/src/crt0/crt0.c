@@ -10,7 +10,7 @@ void call_main(uintptr_t *args) {
 
   int argc = *(int*)args;
 
-  char** argv = (char**)((int*)args + 1);
+  char** argv = (char**)(args + 1);
 
   char** envp = argv + argc + 1;
 
