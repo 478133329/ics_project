@@ -33,21 +33,25 @@ static int screen_w = 0, screen_h = 0;
 static int canvas_w = 0, canvas_h = 0, canvas_x = 0, canvas_y = 0;
 
 void NDL_OpenCanvas(int *w, int *h) {
+
     if (*w == 0 && *h == 0) {
         canvas_w = screen_w;
         canvas_h = screen_h;
         *w = canvas_w;
         *h = canvas_h;
+
     }
     else {
         if (*w > screen_w || *h > screen_h) {
             assert(0);
         }
         canvas_w = *w;
-        canvas_h = *w;
+        canvas_h = *h;  // 这里写成了canvas_h = *w, debug了很久
+
     }
     canvas_x = (screen_w - canvas_w) / 2;
     canvas_y = (screen_h - canvas_h) / 2;
+
     // printf("screen_w: %d, screen_h: %d\n", screen_w, screen_h);
     // printf("canvas_w: %d, canvas_h: %d\n", canvas_w, canvas_h);
     // printf("canvas_x: %d, canvas_y: %d\n", canvas_x, canvas_y);

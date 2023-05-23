@@ -13,7 +13,12 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
-    NDL_DrawRect(uint32_t * pixels, int x, int y, int w, int h);
+    if (x == 0 && y == 0 && w == 0 && h == 0) {
+        NDL_DrawRect((uint32_t*)s->pixels, 0, 0, s->w, s->h);
+    }
+    else {
+        NDL_DrawRect((uint32_t*)s->pixels, x, y, w, h);
+    }
 }
 
 // APIs below are already implemented.
@@ -51,7 +56,6 @@ SDL_Surface* SDL_CreateRGBSurface(uint32_t flags, int width, int height, int dep
     s->format->Bmask = Bmask; s->format->Bshift = maskToShift(Bmask); s->format->Bloss = 0;
     s->format->Amask = Amask; s->format->Ashift = maskToShift(Amask); s->format->Aloss = 0;
   }
-
   s->format->BitsPerPixel = depth;
   s->format->BytesPerPixel = depth / 8;
 
@@ -64,7 +68,6 @@ SDL_Surface* SDL_CreateRGBSurface(uint32_t flags, int width, int height, int dep
     s->pixels = malloc(s->pitch * height);
     assert(s->pixels);
   }
-
   return s;
 }
 

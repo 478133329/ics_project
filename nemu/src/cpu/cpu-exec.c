@@ -42,6 +42,19 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 }
 
+/*
+typedef struct Decode {
+  vaddr_t pc;
+  vaddr_t snpc; // static next pc
+  vaddr_t dnpc; // dynamic next pc
+  ISADecodeInfo isa;
+  IFDEF(CONFIG_ITRACE, char logbuf[128]);
+} Decode;
+*/
+
+static char iringbuf[10][128];
+static int cur = 0;
+
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
@@ -67,6 +80,9 @@ static void exec_once(Decode *s, vaddr_t pc) {
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
       MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
+
+  strncpy(iringbuf[cur], s->logbuf, 128);
+  cur = (cur + 1) % 10;
 #else
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
@@ -83,6 +99,19 @@ static void execute(uint64_t n) {
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
   }
+}
+
+static void isa_iringbuf_display() {
+    printf("\nThe itrace buffer:\n");
+    for (int i = 0; i < 10; i++) {
+        if ((i + 1) % 10 == cur) {
+            printf("->");
+        }
+        else {
+            printf("  ");
+        }
+        printf("%s\n", iringbuf[i]);
+    }
 }
 
 static void statistic() {
@@ -119,13 +148,14 @@ void cpu_exec(uint64_t n) {
   switch (nemu_state.state) {
     // 程序还未执行完, NEMU状态置为stop.
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
-
-    case NEMU_END: case NEMU_ABORT:
+    case NEMU_ABORT: isa_iringbuf_display();
+    case NEMU_END:
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           nemu_state.halt_pc);
+
       // fall through
     case NEMU_QUIT: statistic();
   }

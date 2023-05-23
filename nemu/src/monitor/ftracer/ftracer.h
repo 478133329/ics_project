@@ -9,6 +9,5 @@ typedef struct __FUNC_INFO {
     size_t size;
 }FUNC_INFO;
 
-FUNC_INFO* check_func(vaddr_t addr);
 
 #endif

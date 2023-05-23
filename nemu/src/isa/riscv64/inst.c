@@ -19,6 +19,8 @@
 #include <cpu/decode.h>
 #include <stdint.h>
 
+#include <common.h>
+
 #define R(i) gpr(i)
 #define Mr vaddr_read
 #define Mw vaddr_write
@@ -52,6 +54,8 @@ static void decode_operand(Decode *s, int *rs1, int *rs2, int *rd, word_t *src1,
   }
 }
 
+void is_call_or_ret(vaddr_t dnpc, vaddr_t rd);
+
 static int decode_exec(Decode *s) {
   int rs1 = 0, rs2 = 0, rd = 0;
   word_t src1 = 0, src2 = 0, imm = 0;
@@ -62,13 +66,20 @@ static int decode_exec(Decode *s) {
   decode_operand(s, &rs1, &rs2, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
   __VA_ARGS__ ; \
 }
-
   INSTPAT_START();
   INSTPAT("??????? ????? ????? ??? ????? 01101 11", lui    , U, R(rd) = imm);
   INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
 
   INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, R(rd) = s->pc + 4; s->dnpc = s->pc + imm);
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, R(rd) = s->pc + 4; s->dnpc = (src1 + imm) & ~1;); // R(5) = s->pc + 4; s->dnpc = (src1 + imm) & ~1; R(rd) = R(5) R(5) is $t0
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, R(rd) = s->pc + 4; s->dnpc = (src1 + imm) & ~1; is_call_or_ret(s->dnpc, rd)); // R(5) = s->pc + 4; s->dnpc = (src1 + imm) & ~1; R(rd) = R(5) R(5) is $t0
+  /*
+  call jalr pc + 4保存到x1，pc = src1 + imm
+  ret  jalr pc + 4保存到x0, pc = ra + 0
+  如何辨别call和ret?
+  src1 + imm 是否在函数表中
+  pc + 4 是否保存至x0
+  因此call_stack函数需要 src1 + imm 和 rd 作为参数
+  */
 
   INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, if (src1 == src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, if (src1 != src2) s->dnpc = s->pc + imm);
