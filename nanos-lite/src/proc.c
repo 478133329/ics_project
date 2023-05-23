@@ -31,7 +31,7 @@ void init_proc() {
     // context_uload(&pcb[0], "/bin/hello");
     char* const argv[] = { "wang" , NULL };
     // char* const envp[] = { "hello", "world" };
-    context_uload(&pcb[1], "/bin/hello", argv, NULL);
+    context_uload(&pcb[1], "/bin/event-test", argv, NULL);
 
     switch_boot_pcb();
 
@@ -47,9 +47,11 @@ void init_proc() {
 
 
 Context* schedule(Context *prev) {
+    // 传过来的prev指针就是sp指针，mv a0, sp
     // 前面分析，一个进程在保存完上下文后，pcb中的cp实际上和sp指向用一个内存区域。
     // 但是pcb中的cp并不是连续赋值，需要在被切换走的时候，要手动更新。
     current->cp = prev;
+    // 如果是进程创建后的第一次切换，cp原本指向内核栈，现在指向了用户栈
 
     current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
     return current->cp;
