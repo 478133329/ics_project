@@ -61,6 +61,7 @@ int fs_open(const char* pathname, int flags, int mode) {
 			return i;
 		}
 	}
+	// assert(0) 不要用这个
 	return -1;
 }
 

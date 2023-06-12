@@ -31,7 +31,7 @@ void init_proc() {
     // context_uload(&pcb[0], "/bin/hello");
     // char* const argv[] = { "wang" , NULL };
     // char* const envp[] = { "hello", "world" };
-    context_uload(&pcb[0], "/bin/menu", NULL, NULL);
+    context_uload(&pcb[0], "/bin/nslider", NULL, NULL);
 
     switch_boot_pcb();
 
