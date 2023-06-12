@@ -36,13 +36,17 @@ int SDL_PollEvent(SDL_Event* ev) {
 	return ret;
 }
 
+#include <stdio.h>
+
 int SDL_WaitEvent(SDL_Event* event) {
 	// ¼üÅÌÊÂ¼ş
 	char event_buf[64];
+
 	int ret = NDL_PollEvent(event_buf, sizeof(event_buf));
 	while (!ret) {
 		ret = NDL_PollEvent(event_buf, sizeof(event_buf));
 	}
+
 	char k1[10], k2[10];
 	sscanf(event_buf, "%s %s", k1, k2);
 	if (strcmp(k1, "kd") == 0) {
@@ -57,6 +61,7 @@ int SDL_WaitEvent(SDL_Event* event) {
 			event->key.keysym.sym = i;
 		}
 	}
+
 	return ret;
 }
 

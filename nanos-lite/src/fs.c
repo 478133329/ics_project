@@ -61,7 +61,34 @@ int fs_open(const char* pathname, int flags, int mode) {
 			return i;
 		}
 	}
-	assert(0);
+	// assert(0);
+	/*
+	这是一段Newlibc中的源码
+	int
+	_open_r (struct _reent *ptr,
+		 const char *file,
+		int flags,
+		int mode)
+	{
+		int ret;
+
+		errno = 0;
+		if ((ret = _open (file, flags, mode)) == -1 && errno != 0)
+			ptr->_errno = errno;
+		return ret;
+	}
+	这里的_open由libos提供
+	可以看到，libc和libos应严格遵循一些约定，比如当open失败的时候应当返回-1，而不是搞一些assert等操作
+	
+	*/
+
+	/*
+	关于nslider在最后一页向下翻页导致报错的原因，最终定位在此，fs_open返回了-1，这是为什么？
+	一共两张图片 slider0和slider1
+	在slider1向下翻页的时候应当继续显示slider1，但实际上是要去显示slider2，找不到该文件，应用层assert。
+	最终问题在于nslider的main函数中没有重新定义正确的N来表示幻灯片的个数。
+	*/
+	return -1;
 }
 
 /*
@@ -98,26 +125,32 @@ size_t fs_write(int fd, const void* buf, size_t len) {
 }
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
-	int off = offset;
+	Finfo* info = &file_table[fd];
+
 	switch (whence) {
-	case SEEK_SET:
-		if (off < 0 || off > file_table[fd].size) assert(0);
-		file_table[fd].current_offset = off;
-		break;
 	case SEEK_CUR:
-		if (file_table[fd].current_offset + off < 0 || file_table[fd].current_offset + off > file_table[fd].size) { printf("current_offset: %d, len: %d, size: %d\n", (int)file_table[fd].current_offset, (int)off, (int)file_table[fd].size);  assert(0); }
-		file_table[fd].current_offset += off;
+		assert(info->current_offset + offset <= info->size);
+		info->current_offset += offset;
 		break;
+
+	case SEEK_SET:
+		assert(offset <= info->size);
+		info->current_offset = offset;
+		break;
+
 	case SEEK_END:
-		if (off > 0 || file_table[fd].size + off < 0) assert(0);
-		// error: file_table[fd].current_offset = file_table[fd].size - 1 + off;
-		// SEEK_END并不指向文件最后一个字节，而是最后一个字节后一个位置，它不包含文件数据，可以反映文件大小。
-		file_table[fd].current_offset = file_table[fd].size + off;
+		assert(offset <= info->size);
+		info->current_offset = info->size + offset;
 		break;
+
+	default:
+		assert(0);
 	}
-	return file_table[fd].current_offset;
+
+	return info->current_offset;
 }
 
 int fs_close(int fd) {
+	file_table[fd].current_offset = 0;
 	return 0;
 }

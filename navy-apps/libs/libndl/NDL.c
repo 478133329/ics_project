@@ -44,13 +44,10 @@ void NDL_OpenCanvas(int *w, int *h) {
             assert(0);
         }
         canvas_w = *w;
-        canvas_h = *w;
+        canvas_h = *h;
     }
     canvas_x = (screen_w - canvas_w) / 2;
     canvas_y = (screen_h - canvas_h) / 2;
-    printf("screen_w: %d, screen_h: %d\n", screen_w, screen_h);
-    printf("canvas_w: %d, canvas_h: %d\n", canvas_w, canvas_h);
-    printf("canvas_x: %d, canvas_y: %d\n", canvas_x, canvas_y);
 
     if (getenv("NWM_APP")) {
         int fbctl = 4;
@@ -71,6 +68,7 @@ void NDL_OpenCanvas(int *w, int *h) {
     }
 }
 
+/*
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
     fbdev = open("/dev/fb", 0);
     for (int i = 0; i < h; i++) {
@@ -78,6 +76,29 @@ void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
         write(fbdev, pixels + i * w, w * sizeof(uint32_t));
     }
     close(fbdev);
+}
+*/
+
+void NDL_DrawRect(uint32_t* pixels, int x, int y, int w, int h) {
+    /*
+    多次系统调用更新画面导致更新过慢，使用大缓存，调用一次write
+    */
+    int graphics = open("/dev/fb", O_RDWR);
+
+    uint32_t* buf = (uint32_t*)malloc(sizeof(uint32_t) * screen_w * h);
+    for (int i = 0; i < h; ++i) {
+        memcpy(&buf[screen_w * i + canvas_x + x], &pixels[w * i], w * sizeof(uint32_t));
+    }
+
+    write(graphics, buf, sizeof(uint32_t) * screen_w * h);
+
+    /*
+    int graphics = open("/dev/fb", O_RDWR);
+    for (int i = 0; i < h; ++i) {
+        lseek(graphics, ((canvas_y + y + i) * screen_w + (canvas_x + x)) * sizeof(uint32_t), SEEK_SET);
+        write(graphics, pixels + w * i, w * sizeof(uint32_t));
+    }
+    */
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
