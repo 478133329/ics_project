@@ -53,9 +53,9 @@ __am_asm_trap:
   jal __am_irq_handle
 
   # 异常服务完成后，仅需根据各进程的SP，就能选择还原某个进程。
-  mv a0, sp
-  jal schedule
-  mv sp, a0
+  # mv a0, sp
+  # jal schedule
+  # mv sp, a0
 
   LOAD t1, OFFSET_STATUS(sp)
   LOAD t2, OFFSET_EPC(sp)
