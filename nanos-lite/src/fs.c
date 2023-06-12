@@ -98,6 +98,33 @@ size_t fs_write(int fd, const void* buf, size_t len) {
 }
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
+	Finfo* info = &file_table[fd];
+
+	switch (whence) {
+	case SEEK_CUR:
+		assert(info->current_offset + offset <= info->size);
+		info->current_offset += offset;
+		break;
+
+	case SEEK_SET:
+		assert(offset <= info->size);
+		info->current_offset = offset;
+		break;
+
+	case SEEK_END:
+		assert(offset <= info->size);
+		info->current_offset = info->size + offset;
+		break;
+
+	default:
+		assert(0);
+	}
+
+	return info->current_offset;
+}
+
+/*
+size_t fs_lseek(int fd, size_t offset, int whence) {
 	int off = offset;
 	switch (whence) {
 	case SEEK_SET:
@@ -117,6 +144,7 @@ size_t fs_lseek(int fd, size_t offset, int whence) {
 	}
 	return file_table[fd].current_offset;
 }
+*/
 
 int fs_close(int fd) {
 	return 0;
