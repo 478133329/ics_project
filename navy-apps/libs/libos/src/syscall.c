@@ -99,12 +99,12 @@ void *_sbrk(intptr_t increment) {
 }
 */
 
-extern char _end;
+extern char end;
 void* program_break = NULL;
 
 void* _sbrk(intptr_t increment) {
 	if (program_break == NULL) {// ≥ı ºªØ
-		program_break = &_end;
+		program_break = &end;
 	}
 	void* old_program_break = program_break;
 
