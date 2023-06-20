@@ -4,10 +4,13 @@
 #include <assert.h>
 
 struct BitmapHeader {
+  // 14字节
   uint16_t type;
   uint32_t filesize;
   uint32_t resv_1;
   uint32_t offset;
+
+  // 40字节
   uint32_t ih_size;
   uint32_t width;
   uint32_t height;
@@ -19,6 +22,10 @@ struct BitmapHeader {
   uint32_t clrused, clrimportant;
 } __attribute__((packed));
 
+/*
+BMP格式，位图，几乎没有数据的压缩
+文件头，如上述定义的BitmapHeader
+*/
 void* BMP_Load(const char *filename, int *width, int *height) {
   FILE *fp = fopen(filename, "r");
   if (!fp) return NULL;
@@ -44,7 +51,6 @@ void* BMP_Load(const char *filename, int *width, int *height) {
       pixels[w * i + j] = (r << 16) | (g << 8) | b;
     }
   }
-
   fclose(fp);
   if (width) *width = w;
   if (height) *height = h;

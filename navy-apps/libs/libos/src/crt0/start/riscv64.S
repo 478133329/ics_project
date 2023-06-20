@@ -5,6 +5,8 @@
 .globl  _start
 _start:
   move sp, a0
+  # pa3阶段使用naive_uload，加这句话报错越界
+  # move sp, a0
   move s0, zero
 
   jal call_main

@@ -48,10 +48,11 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
 // AM_DEVREG(13, GPU_MEMCPY,     WR, uint32_t dest; const void *src; int size);
 void __am_gpu_memcpy(AM_GPU_MEMCPY_T* cpy) {
     // 不足一个像素的部分丢掉
-    for (int i = 0; i < cpy->size / 4; i++) {
+    for (int i = 0; i < cpy->size >> 2; i++) {
         ((uint32_t*)FB_ADDR)[cpy->dest / 4 + i] = ((uint32_t*)cpy->src)[i];
     }
 }
+
 
 void __am_gpu_status(AM_GPU_STATUS_T *status) {
     status->ready = true;

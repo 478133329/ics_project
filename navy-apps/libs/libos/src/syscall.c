@@ -84,6 +84,26 @@ libcÖĞµÄfread()ºÍfwrite()ÕıÊÇÍ¨¹ı»º³åÇøÀ´½«Êı¾İÀÛ»ıÆğÀ´£¬È»ºóÔÙÍ¨¹ıÒ»´ÎÏµÍ³µ÷ÓÃ½
 ÀıÈçÍ¨¹ıÒ»¸ö1024×Ö½ÚµÄ»º³åÇø£¬¾Í¿ÉÒÔÍ¨¹ıÒ»´ÎÏµÍ³µ÷ÓÃÖ±½ÓÊä³ö1024¸ö×Ö·û£¬¶ø²»ĞèÒªÍ¨¹ı1024´ÎÏµÍ³µ÷ÓÃÀ´Öğ¸ö×Ö·ûµØÊä³ö¡£
 */
 
+extern char end;
+void* program_break = NULL;
+
+void* _sbrk(intptr_t increment) {
+	if (program_break == NULL) {// ³õÊ¼»¯
+		program_break = &end;
+	}
+	void* old_program_break = program_break;
+
+	int ret = _syscall_(SYS_brk, (intptr_t)(program_break + increment), 0, 0);
+	if (ret == 0) {
+		program_break = program_break + increment;
+	}
+	else {
+		assert(0);
+	}
+
+	return old_program_break;
+}
+
 /*
 extern uint8_t _end;
 static uint8_t* old_break = &_end;
@@ -118,6 +138,7 @@ void* _sbrk(intptr_t increment) {
 
 	return old_program_break;
 }
+
 
 int _read(int fd, void *buf, size_t count) {
 	int ret = _syscall_(SYS_read, fd, buf, count);

@@ -12,11 +12,11 @@ void switch_boot_pcb() {
 
 // 测试函数作为一个程序
 void hello_fun(void *arg) {
-  // int j = 1;
+  int j = 1;
   while (1) {
-    // Log("Hello World from Nanos-lite with arg '%p' for the %dth time!", (uintptr_t)arg, j);
-    // j ++;
-    // yield();
+    Log("Hello World from Nanos-lite with arg '%p' for the %dth time!", (uintptr_t)arg, j);
+    j ++;
+    yield();
   }
 }
 
@@ -31,7 +31,7 @@ void init_proc() {
     // context_uload(&pcb[0], "/bin/hello");
     // char* const argv[] = { "wang" , NULL };
     // char* const envp[] = { "hello", "world" };
-    context_uload(&pcb[0], "/bin/nplayer", NULL, NULL);
+    context_uload(&pcb[0], "/bin/hello", NULL, NULL);
 
     switch_boot_pcb();
 
@@ -43,6 +43,19 @@ void init_proc() {
     // 此时navy-test使用的是内核栈，naive_uload，更像是一个子函数调用。
     // naive_uload(NULL, "/bin/nslider");
 
+  // load program here
+  //naive_uload(NULL, "/bin/dummy");
+  //naive_uload(NULL, "/bin/hello");
+  //naive_uload(NULL, "/bin/file-test");
+  //naive_uload(NULL, "/bin/timer-test");
+  //naive_uload(NULL, "/bin/event-test");
+  //naive_uload(NULL, "/bin/bmp-test");
+  //naive_uload(NULL, "/bin/nslider");
+  //naive_uload(NULL, "/bin/menu");
+  //naive_uload(NULL, "/bin/nterm");
+  //naive_uload(NULL, "/bin/bird");
+  //naive_uload(NULL, "/bin/pal");
+
 }
 
 
@@ -53,6 +66,6 @@ Context* schedule(Context *prev) {
     current->cp = prev;
     // 如果是进程创建后的第一次切换，cp原本指向内核栈，现在指向了用户栈
 
-    current = (current == &pcb[0] ? &pcb[0] : &pcb[0]);
+    current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
     return current->cp;
 }
