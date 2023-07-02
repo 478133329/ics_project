@@ -27,10 +27,10 @@ Context* __am_irq_handle(Context *c) {
   return c;
 }
 
-extern void __am_asm_trap(void);
-
 // 有了自陷指令, 用户程序就可以将执行流切换到操作系统【指定的入口】了。
 // 用户程序能做的事情很少，基本上只有系统调用传参。
+
+extern void __am_asm_trap(void);
 
 bool cte_init(Context*(*handler)(Event, Context*)) {
     // initialize exception entry
