@@ -10,6 +10,8 @@ Area heap = RANGE(&_heap_start, PMEM_END);
 #endif
 static const char mainargs[] = MAINARGS;
 
+char* heap_pointer = &_heap_start;
+
 /*
 使用设备的需求->设备的访问->设备控制寄存器访问
 CPU只认识已经完成了独立编址的寄存器堆和地址线提供的寻址空间
