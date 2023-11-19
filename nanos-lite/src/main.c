@@ -27,6 +27,10 @@ int main() {
 
   init_fs();
 
+  while (1) {
+	  printf("test.\n");
+  }
+
   init_proc();
 
   Log("Finish initialization");
