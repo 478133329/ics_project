@@ -18,6 +18,7 @@ ifeq ($(HAS_NAVY),)
 files = $(RAMDISK_FILE) src/files.h src/syscall.h
 # create an empty file if it does not exist
 $(foreach f,$(files),$(if $(wildcard $f),, $(shell touch $f)))
+
 else
 
 ifeq ($(wildcard $(NAVY_HOME)/libs/libos/src/syscall.h),)

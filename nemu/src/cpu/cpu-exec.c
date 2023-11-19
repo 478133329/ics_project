@@ -114,19 +114,6 @@ static void isa_iringbuf_display() {
     }
 }
 
-static void isa_iringbuf_display() {
-    printf("\nThe itrace buffer:\n");
-    for (int i = 0; i < 10; i++) {
-        if ((i + 1) % 10 == cur) {
-            printf("->");
-        }
-        else {
-            printf("  ");
-        }
-        printf("%s\n", iringbuf[i]);
-    }
-}
-
 static void statistic() {
     IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64

@@ -21,7 +21,7 @@
 typedef struct {
   word_t gpr[32];
   vaddr_t pc;
-  word_t csr[4];  // mstatus:0x300  mtvec:0x305  mepc:0x341  mcause:0x342
+  word_t csr[4];  // mstatus:0x300  mtvec:0x305  mepc:0x341  mcause:0x342 satp:0x180
 } riscv64_CPU_state;
 
 static inline word_t csr_decode(word_t no) {
@@ -30,6 +30,7 @@ static inline word_t csr_decode(word_t no) {
     case 0x305: return 1;
     case 0x341: return 2;
     case 0x342: return 3;
+    case 0x180: return 4;
     default: assert(0);
     }
     return -1;
@@ -42,6 +43,6 @@ typedef struct {
   } inst;
 } riscv64_ISADecodeInfo;
 
-#define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)
+// #define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)
 
 #endif

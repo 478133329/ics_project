@@ -2,7 +2,9 @@
 #include <nemu.h>
 #include <klib.h>
 
+// ÄÚºËĞéÄâµØÖ·¿Õ¼ä
 static AddrSpace kas = {};
+
 static void* (*pgalloc_usr)(int) = NULL;
 static void (*pgfree_usr)(void*) = NULL;
 static int vme_enable = 0;
