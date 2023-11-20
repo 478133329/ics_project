@@ -74,14 +74,14 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   int pt1_idx = ((uintptr_t)va >> 21) & 0x1ff;
   int pt2_idx = ((uintptr_t)va >> 12) & 0x1ff;
 
-  page_entry *page_dir_entry = &((page_entry*)as.ptr)[pd_idx];
+  page_entry *page_dir_entry = &((page_entry*)as->ptr)[pd_idx];
   if (page_dir_entry->V == 0) {
     page_entry *page_tbl1 = pgalloc_usr(PGSIZE);
-    page_dir_ertry->PPN = (uintptr_t)page_tbl1 >> 12;
+    page_dir_entry->PPN = (uintptr_t)page_tbl1 >> 12;
     page_dir_entry->V = 1;
   }
 
-  uintptr_t page_tbl1_addr = page_dir_ertry.PPN << 12;
+  uintptr_t page_tbl1_addr = page_dir_entry->PPN << 12;
   page_entry *page_tbl1_entry = &((page_entry*)page_tbl1_addr)[pt1_idx];
   if (page_tbl1_entry->V == 0) {
     page_entry *page_tbl2 = pgalloc_usr(PGSIZE);
@@ -89,11 +89,11 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
     page_tbl1_entry->V = 1;
   }
 
-  uintptr_t page_tbl2_addr = page_dir_ertry.PPN << 12;
+  uintptr_t page_tbl2_addr = page_tbl1_entry->PPN << 12;
   page_entry *page_tbl2_entry = &((page_entry*)page_tbl2_addr)[pt2_idx];
   if (page_tbl2_entry->V == 0) {
-    page_tbl1_entry->PPN = (uintptr_t)pa >> 12;
-    page_tbl1_entry->V = 1;
+    page_tbl2_entry->PPN = (uintptr_t)pa >> 12;
+    page_tbl2_entry->V = 1;
   }
 }
 

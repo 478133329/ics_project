@@ -33,7 +33,7 @@ satp mode
 
 // riscv64-sv39
 typedef union{
-	paddr_t val;
+	vaddr_t val;
 	struct {
 		uint64_t V : 1;
 		uint64_t R : 1;
@@ -48,6 +48,8 @@ typedef union{
 		uint64_t Reserved : 10;
 	} ;
 } page_entry;
+
+#include <stdio.h>
 
 static void check_valid(page_entry pe) {
 	assert(pe.V);
@@ -66,20 +68,33 @@ page_entry page_dir_entry = ((page_entry*)page_dir_addr)[pd_idx];
 error: cast to pointer from integer of different size [-Werror=int-to-pointer-case]]
 ¸ÄÎª page_entry page_dir_entry = ((page_entry*)(uintptr_t)page_dir_addr)[pd_idx];
 */
+
 paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
 	int pd_idx = (vaddr >> 30) & 0x1ff;
 	int pt1_idx = (vaddr >> 21) & 0x1ff;
 	int pt2_idx = (vaddr >> 12) & 0x1ff;
 	int offset = vaddr & 0xfff;
 	paddr_t page_dir_addr = (cpu.csr[4] & 0xfffffffffff) << 12;
-	page_entry page_dir_entry = ((page_entry*)(uintptr_t)page_dir_addr)[pd_idx];
+	// page_entry page_dir_entry = ((page_entry*)(uintptr_t)page_dir_addr)[pd_idx];
+	paddr_t page_dir_entry_addr = (uintptr_t)page_dir_addr + sizeof(page_entry) * pd_idx;
+	page_entry page_dir_entry = {0};
+	page_dir_entry.val = (vaddr_t)paddr_read(page_dir_entry_addr, sizeof(page_entry));
 	check_valid(page_dir_entry);
+	
 	paddr_t page_tbl1_addr = page_dir_entry.PPN << 12;
-	page_entry page_tbl1_entry = ((page_entry*)(uintptr_t)page_tbl1_addr)[pt1_idx];
+	// page_entry page_tbl1_entry = ((page_entry*)(uintptr_t)page_tbl1_addr)[pt1_idx];
+	paddr_t page_tbl1_entry_addr = (uintptr_t)page_tbl1_addr + sizeof(page_entry) * pt1_idx;
+	page_entry page_tbl1_entry = {0};
+	page_tbl1_entry.val = (vaddr_t)paddr_read(page_tbl1_entry_addr, sizeof(page_entry));
 	check_valid(page_tbl1_entry);
+	
 	paddr_t page_tbl2_addr = page_tbl1_entry.PPN << 12;
-	page_entry page_tbl2_entry = ((page_entry*)(uintptr_t)page_tbl2_addr)[pt2_idx];
+	// page_entry page_tbl2_entry = ((page_entry*)(uintptr_t)page_tbl2_addr)[pt2_idx];
+	paddr_t page_tbl2_entry_addr = (uintptr_t)page_tbl2_addr + sizeof(page_entry) * pt2_idx;
+        page_entry page_tbl2_entry = {0};
+        page_tbl2_entry.val = (vaddr_t)paddr_read(page_tbl2_entry_addr, sizeof(page_entry));
 	check_valid(page_tbl2_entry);
+	
 	paddr_t paddr = (page_tbl2_entry.PPN << 12) | offset;
 	return paddr;
 }

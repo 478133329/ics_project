@@ -58,7 +58,7 @@ config I8042_DATA_PORT
 
 config I8042_DATA_MMIO
   hex "MMIO address of the keyboard controller"
-  default 0xa0000060
+  default 0xa0000070
 endif # HAS_KEYBOARD
 
 menuconfig HAS_VGA

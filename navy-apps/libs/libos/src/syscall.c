@@ -119,27 +119,6 @@ void *_sbrk(intptr_t increment) {
 }
 */
 
-extern char end;
-void* program_break = NULL;
-
-void* _sbrk(intptr_t increment) {
-	if (program_break == NULL) {// ≥ı ºªØ
-		program_break = &end;
-	}
-	void* old_program_break = program_break;
-
-	int ret = _syscall_(SYS_brk, (intptr_t)(program_break + increment), 0, 0);
-	if (ret == 0) {
-		program_break = program_break + increment;
-	}
-	else {
-		assert(0);
-	}
-
-	return old_program_break;
-}
-
-
 int _read(int fd, void *buf, size_t count) {
 	int ret = _syscall_(SYS_read, fd, buf, count);
 	return ret;

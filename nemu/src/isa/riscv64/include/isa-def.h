@@ -21,7 +21,7 @@
 typedef struct {
   word_t gpr[32];
   vaddr_t pc;
-  word_t csr[4];  // mstatus:0x300  mtvec:0x305  mepc:0x341  mcause:0x342 satp:0x180
+  word_t csr[5];  // mstatus:0x300  mtvec:0x305  mepc:0x341  mcause:0x342 satp:0x180
 } riscv64_CPU_state;
 
 static inline word_t csr_decode(word_t no) {

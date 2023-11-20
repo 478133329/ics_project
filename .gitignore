@@ -9,6 +9,6 @@
 !README.md
 !.gitignore
 !init.sh
-/fceux-am
 /am-kernels
 .vscode
+/fceux-am

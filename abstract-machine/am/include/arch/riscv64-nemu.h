@@ -18,7 +18,7 @@ struct Context {
 
 // riscv64-sv39
 typedef union{
-	paddr_t val;
+	uintptr_t val;
 	struct {
 		uint64_t V : 1;
 		uint64_t R : 1;
