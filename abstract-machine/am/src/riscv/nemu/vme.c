@@ -2,7 +2,7 @@
 #include <nemu.h>
 #include <klib.h>
 
-// ÄÚºËĞéÄâµØÖ·¿Õ¼ä
+// ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½Õ¼ï¿½
 static AddrSpace kas = {};
 
 static void* (*pgalloc_usr)(int) = NULL;
@@ -68,7 +68,33 @@ void __am_switch(Context *c) {
   }
 }
 
+// riscv64
 void map(AddrSpace *as, void *va, void *pa, int prot) {
+  int pd_idx = ((uintptr_t)va >> 30) & 0x1ff;
+  int pt1_idx = ((uintptr_t)va >> 21) & 0x1ff;
+  int pt2_idx = ((uintptr_t)va >> 12) & 0x1ff;
+
+  page_entry *page_dir_entry = &((page_entry*)as.ptr)[pd_idx];
+  if (page_dir_entry->V == 0) {
+    page_entry *page_tbl1 = pgalloc_usr(PGSIZE);
+    page_dir_ertry->PPN = (uintptr_t)page_tbl1 >> 12;
+    page_dir_entry->V = 1;
+  }
+
+  uintptr_t page_tbl1_addr = page_dir_ertry.PPN << 12;
+  page_entry *page_tbl1_entry = &((page_entry*)page_tbl1_addr)[pt1_idx];
+  if (page_tbl1_entry->V == 0) {
+    page_entry *page_tbl2 = pgalloc_usr(PGSIZE);
+    page_tbl1_entry->PPN = (uintptr_t)page_tbl2 >> 12;
+    page_tbl1_entry->V = 1;
+  }
+
+  uintptr_t page_tbl2_addr = page_dir_ertry.PPN << 12;
+  page_entry *page_tbl2_entry = &((page_entry*)page_tbl2_addr)[pt2_idx];
+  if (page_tbl2_entry->V == 0) {
+    page_tbl1_entry->PPN = (uintptr_t)pa >> 12;
+    page_tbl1_entry->V = 1;
+  }
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
@@ -78,7 +104,7 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
 
     cp->mepc = (uintptr_t)entry;
 
-    // ´´½¨Ò»¸ö½ø³ÌÊ±£¬Ö»Òª¸ø³öÒ»¸öÆô¶¯pc£¬È»ºó»áÖ´ĞĞ½ø³Ì_start£¬¶ø_start×îÖØÒªµÄ¹¤×÷Ö®Ò»¾ÍÊÇ³õÊ¼»¯C»·¾³£¬Ò²¾ÍÊÇ³õÊ¼»¯sp¡£
+    // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ö»Òªï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pcï¿½ï¿½È»ï¿½ï¿½ï¿½Ö´ï¿½Ğ½ï¿½ï¿½ï¿½_startï¿½ï¿½ï¿½ï¿½_startï¿½ï¿½ï¿½ï¿½Òªï¿½Ä¹ï¿½ï¿½ï¿½Ö®Ò»ï¿½ï¿½ï¿½Ç³ï¿½Ê¼ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½Ç³ï¿½Ê¼ï¿½ï¿½spï¿½ï¿½
     // cp->sp = (uintptr_t)cp;
     
     return cp;

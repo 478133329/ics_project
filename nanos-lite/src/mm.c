@@ -4,13 +4,15 @@ static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
 	char* pp = pf;
-	pf += nr_page;
+	pf += (nr_page * PGSIZE);
 	return pp;
 }
 
 #ifdef HAS_VME
 static void* pg_alloc(int n) {
-	void *pp = new_page(n * PGSIZE);
+	int nr_page = (n + PGSIZE - 1) / PGSIZE;
+	void *pp = new_page(nr_page);
+	memset(pp, 0, nr_page * PGSIZE);
 	return pp;
 }
 #endif
@@ -24,7 +26,7 @@ int mm_brk(uintptr_t brk) {
   return 0;
 }
 
-//  µÚÒ»Ïî¹¤×÷ÊÇ½«TRMÌá¹©µÄ¶ÑÇøÆğÊ¼µØÖ·×÷Îª¿ÕÏĞÎïÀíÒ³µÄÊ×µØÖ·, ÕâÑùÒÔºó, ½«À´¾Í¿ÉÒÔÍ¨¹ınew_page()º¯ÊıÀ´·ÖÅä¿ÕÏĞµÄÎïÀíÒ³ÁË¡£
+//  ï¿½ï¿½Ò»ï¿½î¹¤ï¿½ï¿½ï¿½Ç½ï¿½TRMï¿½á¹©ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½Ö·ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò³ï¿½ï¿½ï¿½×µï¿½Ö·, ï¿½ï¿½ï¿½ï¿½ï¿½Ôºï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½Í¨ï¿½ï¿½new_page()ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğµï¿½ï¿½ï¿½ï¿½ï¿½Ò³ï¿½Ë¡ï¿½
 void init_mm() {
   pf = (void *)ROUNDUP(heap.start, PGSIZE);
   Log("free physical pages starting from %p", pf);

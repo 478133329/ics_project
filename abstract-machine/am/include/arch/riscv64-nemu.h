@@ -16,4 +16,22 @@ struct Context {
 #define ra   gpr[1]  // ra
 #define sp   gpr[2]  // sp
 
+// riscv64-sv39
+typedef union{
+	paddr_t val;
+	struct {
+		uint64_t V : 1;
+		uint64_t R : 1;
+		uint64_t W : 1;
+		uint64_t X : 1;
+		uint64_t U : 1;
+		uint64_t G : 1;
+		uint64_t A : 1;
+		uint64_t D : 1;
+		uint64_t RSW : 2;
+		uint64_t PPN : 44;
+		uint64_t Reserved : 10;
+	} ;
+} page_entry;
+
 #endif
